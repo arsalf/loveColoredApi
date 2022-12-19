@@ -20,5 +20,4 @@ class SpeciesViewSet(viewsets.ModelViewSet):
 
 class FilesViewSet(viewsets.ModelViewSet):
     queryset = Files.objects.all()
-    print(queryset)
     serializer_class = FilesSerializer
