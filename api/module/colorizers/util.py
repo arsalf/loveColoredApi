@@ -11,6 +11,7 @@ from .eccv16 import *
 from .siggraph17 import *
 import os
 import glob
+import re
 
 # Function to extract frames
 def colorfullPerFrame(path):
@@ -49,6 +50,37 @@ def colorfullPerFrame(path):
         # Saves the frames with frame-count        
         print("saving frame colorfull...")
         plt.imsave('static/video/'+vidName+"/frame%d.png" % count, out_img_siggraph17)
+
+        count += 1
+
+def grayfullPerFrame(path): 
+    # Path to video file
+    vidObj = cv2.VideoCapture(path)
+    vidName = path.split('/')[-1].split('.')[0]        
+
+    # check if folder exist
+    if not os.path.exists('static/video/'+vidName):
+        os.makedirs('static/video/'+vidName)
+
+    # Used as counter variable
+    count = 0
+ 
+    # checks whether frames were extracted
+    success = 1
+ 
+    while True:
+        # vidObj object calls read
+        # function extract frames
+        success, image = vidObj.read()
+        if(not success):
+            break
+
+        # Converts to grayscale
+        print("processing image frame...")
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # Saves the frames with frame-count
+        print("saving frame grayfull...")
+        cv2.imwrite('static/video/'+vidName+"/frame%d.jpg" % count, img)
 
         count += 1
 
@@ -121,7 +153,7 @@ def saveVideoColorfull(file):
     vidFolder = file.name.split('/')[-2]
     img_array = []
     print("menyatukan frame:")
-    for filename in glob.glob("static/video/"+vidName+'/*.png'):
+    for filename in  sorted(glob.glob("static/video/"+vidName+'/*.png'), key=lambda s: int(re.search(r'frame(\d+)', s).groups()[0])):
         img = cv2.imread(filename)
         print(filename)
         height, width, layers = img.shape
@@ -133,3 +165,37 @@ def saveVideoColorfull(file):
     for i in range(len(img_array)):
         out.write(img_array[i])
     out.release()
+
+def saveImgGrayfull(file):
+    # load img with cv2
+    img = cv2.imread(str(file))
+    # convert to grayscale
+    print("processing image...")
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # save the grayscale image
+    print("saving file...")
+    cv2.imwrite(file.name.split('.')[0]+'_grayfull.jpg', gray)
+
+def saveVideoGrayfull(file):
+    # colorfull per frame
+    grayfullPerFrame(file.name)
+
+    # convert to video
+    vidName = file.name.split('/')[-1].split('.')[0]    
+    img_array = []
+    print("menyatukan frame:")
+    # sorted for the frame order
+    
+    for filename in sorted(glob.glob("static/video/"+vidName+'/*.jpg'), key=lambda s: int(re.search(r'frame(\d+)', s).groups()[0])):
+        img = cv2.imread(filename)
+        print(filename)
+        height, width, layers = img.shape
+        size = (width,height)
+        img_array.append(img)
+
+    out = cv2.VideoWriter("static/video/"+vidName+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+
+    for i in range(len(img_array)):
+        out.write(img_array[i])
+    out.release()
+    

@@ -10,24 +10,49 @@ class Files(models.Model):
 
     # override the save method
     def save(self, *args, **kwargs):        
-        # if image
-        if self.file.name.endswith('.jpg') or self.file.name.endswith('.png'):
-            # upload to static/files/image            
-            self.file.name = 'image/' + self.file.name
-            self.file.upload_to = 'static/image/'
-            super(Files, self).save(*args, **kwargs)        
+        if self.name == 'colorfull':
+            # if image
+            if self.file.name.endswith('.jpg') or self.file.name.endswith('.png'):
+                # upload to static/files/image            
+                self.file.name = 'image/' + self.file.name
+                self.file.upload_to = 'static/image/'
+                super(Files, self).save(*args, **kwargs)        
 
-            # then modifiy the file    
-            colorizers.saveImgColorfull(self.file)
-        # if video
-        elif self.file.name.endswith('.mp4') or self.file.name.endswith('.avi'):
-            # upload to static/files/video
-            self.file.name = 'video/' + self.file.name
-            self.file.upload_to = 'static/video/'
-            super(Files, self).save(*args, **kwargs)  
+                # then modifiy the file    
+                colorizers.saveImgColorfull(self.file)
+            # if video
+            elif self.file.name.endswith('.mp4') or self.file.name.endswith('.avi'):
+                # upload to static/files/video
+                self.file.name = 'video/' + self.file.name
+                self.file.upload_to = 'static/video/'
+                super(Files, self).save(*args, **kwargs)  
 
-            # then modifiy the file
-            colorizers.saveVideoColorfull(self.file)
-        # else then raise error
+                # then modifiy the file
+                colorizers.saveVideoColorfull(self.file)
+            # else then raise error
+            else:
+                raise Exception('File type not supported')
+        elif self.name == 'grayfull':
+            # if image
+            if self.file.name.endswith('.jpg') or self.file.name.endswith('.png'):
+                # upload to static/files/image            
+                self.file.name = 'image/' + self.file.name
+                self.file.upload_to = 'static/image/'
+                super(Files, self).save(*args, **kwargs)        
+
+                # then modifiy the file    
+                colorizers.saveImgGrayfull(self.file)
+            # if video
+            elif self.file.name.endswith('.mp4') or self.file.name.endswith('.avi'):
+                # upload to static/files/video
+                self.file.name = 'video/' + self.file.name
+                self.file.upload_to = 'static/video/'
+                super(Files, self).save(*args, **kwargs)  
+
+                # then modifiy the file
+                colorizers.saveVideoGrayfull(self.file)
+            # else then raise error
+            else:
+                raise Exception('File type not supported')
         else:
-            raise Exception('File type not supported')
+            raise Exception('Name not supported')
