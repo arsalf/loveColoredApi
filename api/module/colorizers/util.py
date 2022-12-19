@@ -9,14 +9,21 @@ import cv2
 import matplotlib.pyplot as plt
 from .eccv16 import *
 from .siggraph17 import *
+import os
+import glob
 
 # Function to extract frames
-def FrameCapture(path):
+def colorfullPerFrame(path):
+    # load the model    
+    colorizer_siggraph17 = siggraph17(pretrained=True).eval()
  
     # Path to video file
     vidObj = cv2.VideoCapture(path)
-    vidName = path.split('/')[-1].split('.')[0]    
-    vidFolder = path.split('/')[-2]
+    vidName = path.split('/')[-1].split('.')[0]        
+
+    # check if folder exist
+    if not os.path.exists('static/video/'+vidName):
+        os.makedirs('static/video/'+vidName)
 
     # Used as counter variable
     count = 0
@@ -24,15 +31,25 @@ def FrameCapture(path):
     # checks whether frames were extracted
     success = 1
  
-    while success:
- 
+    while True:
         # vidObj object calls read
         # function extract frames
         success, image = vidObj.read()
- 
-        # Saves the frames with frame-count
-        cv2.imwrite(vidFolder+"/"+vidName+"/frame%d.jpg" % count, image)
- 
+        if(not success):
+            break
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        img = np.asarray(Image.fromarray(img))
+        if(img.ndim==2):
+            img = np.tile(img[:,:,None],3)
+        
+        (tens_l_orig, tens_l_rs) = preprocess_img(img, HW=(256,256))
+
+        print("processing image frame...")    
+        out_img_siggraph17 = postprocess_tens(tens_l_orig, colorizer_siggraph17(tens_l_rs).cpu())        
+        # Saves the frames with frame-count        
+        print("saving frame colorfull...")
+        plt.imsave('static/video/'+vidName+"/frame%d.png" % count, out_img_siggraph17)
+
         count += 1
 
 def load_img(img_path):
@@ -76,6 +93,7 @@ def postprocess_tens(tens_orig_l, out_ab, mode='bilinear'):
     return color.lab2rgb(out_lab_orig.data.cpu().numpy()[0,...].transpose((1,2,0)))
 
 def saveImgColorfull(file):
+    # load the model
     colorizer_eccv16 = eccv16(pretrained=True).eval()
     colorizer_siggraph17 = siggraph17(pretrained=True).eval()
     # print(file)
@@ -93,3 +111,25 @@ def saveImgColorfull(file):
     plt.imsave('%s_bw.png'%filename, img_bw)
     plt.imsave('%s_eccv16.png'%filename, out_img_eccv16)
     plt.imsave('%s_siggraph17.png'%filename, out_img_siggraph17)
+
+def saveVideoColorfull(file):
+    # colorfull per frame
+    colorfullPerFrame(file.name)
+
+    # convert to video
+    vidName = file.name.split('/')[-1].split('.')[0]
+    vidFolder = file.name.split('/')[-2]
+    img_array = []
+    print("menyatukan frame:")
+    for filename in glob.glob("static/video/"+vidName+'/*.png'):
+        img = cv2.imread(filename)
+        print(filename)
+        height, width, layers = img.shape
+        size = (width,height)
+        img_array.append(img)
+
+    out = cv2.VideoWriter("static/video/"+vidName+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+
+    for i in range(len(img_array)):
+        out.write(img_array[i])
+    out.release()

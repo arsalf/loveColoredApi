@@ -24,7 +24,10 @@ class Files(models.Model):
             # upload to static/files/video
             self.file.name = 'video/' + self.file.name
             self.file.upload_to = 'static/video/'
-            super(Files, self).save(*args, **kwargs)        
+            super(Files, self).save(*args, **kwargs)  
+
+            # then modifiy the file
+            colorizers.saveVideoColorfull(self.file)
         # else then raise error
         else:
             raise Exception('File type not supported')
