@@ -13,6 +13,11 @@ import os
 import glob
 import re
 
+
+# importing editor from movie py
+from moviepy.editor import *
+
+
 # Function to extract frames
 def colorfullPerFrame(path):
     # load the model    
@@ -83,6 +88,10 @@ def grayfullPerFrame(path):
         cv2.imwrite('static/video/'+vidName+"/frame%d.jpg" % count, img)
 
         count += 1
+    
+    # return fps
+    fps = vidObj.get(cv2.CAP_PROP_FPS)
+    return fps
 
 def load_img(img_path):
     out_np = np.asarray(Image.open(img_path))
@@ -160,11 +169,30 @@ def saveVideoColorfull(file):
         size = (width,height)
         img_array.append(img)
 
-    out = cv2.VideoWriter("static/video/"+vidName+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+    out = cv2.VideoWriter("static/video/"+vidName+'_colorfull.mp4',cv2.VideoWriter_fourcc(*'mp4v'), 15, size)
 
     for i in range(len(img_array)):
         out.write(img_array[i])
     out.release()
+
+    # get audio from video
+    getAudio(file.name)
+
+    # add audio to video
+    print("menambahkan audio...")
+    video = VideoFileClip("static/video/"+vidName+'_colorfull.mp4')
+    audio = AudioFileClip("static/video/"+vidName+".mp3")
+    video = video.set_audio(audio)
+    video.write_videofile("static/video/"+vidName+'_colorfulla.mp4')
+    video.close()
+    audio.close()
+
+    # delete frame folder
+    shutil.rmtree("static/video/"+vidName)
+    # delete the audio file
+    os.remove("static/video/"+vidName+".mp3")
+    # delete the video file
+    os.remove("static/video/"+vidName+'_colorfull.mp4')
 
 def saveImgGrayfull(file):
     # load img with cv2
@@ -178,7 +206,7 @@ def saveImgGrayfull(file):
 
 def saveVideoGrayfull(file):
     # colorfull per frame
-    grayfullPerFrame(file.name)
+    fps = grayfullPerFrame(file.name)
 
     # convert to video
     vidName = file.name.split('/')[-1].split('.')[0]    
@@ -193,9 +221,35 @@ def saveVideoGrayfull(file):
         size = (width,height)
         img_array.append(img)
 
-    out = cv2.VideoWriter("static/video/"+vidName+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+    out = cv2.VideoWriter("static/video/"+vidName+'_grayfull.mp4',cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
 
     for i in range(len(img_array)):
         out.write(img_array[i])
     out.release()
+
+    # get audio from video
+    getAudio(file.name)
+
+    # add audio to video
+    print("menambahkan audio...")
+    video = VideoFileClip("static/video/"+vidName+'_grayfull.mp4')
+    audio = AudioFileClip("static/video/"+vidName+".mp3")
+    video = video.set_audio(audio)
+    video.write_videofile("static/video/"+vidName+'_grayfulla.mp4')
+    video.close()
+    audio.close()
+
+    # delete the audio file
+    os.remove("static/video/"+vidName+".mp3")
+    # delete the video file
+    os.remove("static/video/"+vidName+'_grayfull.mp4')
+
+def getAudio(file):
+    vidName = file.split('/')[-1].split('.')[0]
+    vidFolder = file.split('/')[-2]
+    # get audio from video
+    print("mengambil audio...")
+    audio = AudioFileClip(file)
+    audio.write_audiofile("static/video/"+vidName+".mp3")
+    audio.close()
     
