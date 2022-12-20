@@ -58,6 +58,10 @@ def colorfullPerFrame(path):
 
         count += 1
 
+    # return fps
+    fps = vidObj.get(cv2.CAP_PROP_FPS)
+    return fps
+
 def grayfullPerFrame(path): 
     # Path to video file
     vidObj = cv2.VideoCapture(path)
@@ -155,11 +159,10 @@ def saveImgColorfull(file):
 
 def saveVideoColorfull(file):
     # colorfull per frame
-    colorfullPerFrame(file.name)
+    fps = colorfullPerFrame(file.name)
 
     # convert to video
-    vidName = file.name.split('/')[-1].split('.')[0]
-    vidFolder = file.name.split('/')[-2]
+    vidName = file.name.split('/')[-1].split('.')[0]    
     img_array = []
     print("menyatukan frame:")
     for filename in  sorted(glob.glob("static/video/"+vidName+'/*.png'), key=lambda s: int(re.search(r'frame(\d+)', s).groups()[0])):
@@ -169,7 +172,7 @@ def saveVideoColorfull(file):
         size = (width,height)
         img_array.append(img)
 
-    out = cv2.VideoWriter("static/video/"+vidName+'_colorfull.mp4',cv2.VideoWriter_fourcc(*'mp4v'), 15, size)
+    out = cv2.VideoWriter("static/video/"+vidName+'_colorfull.mp4',cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
 
     for i in range(len(img_array)):
         out.write(img_array[i])
