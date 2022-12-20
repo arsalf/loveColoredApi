@@ -12,7 +12,7 @@ from .siggraph17 import *
 import os
 import glob
 import re
-
+import shutil
 
 # importing editor from movie py
 from moviepy.editor import *
@@ -239,6 +239,8 @@ def saveVideoGrayfull(file):
     video.close()
     audio.close()
 
+    # delete frame folder
+    shutil.rmtree("static/video/"+vidName)
     # delete the audio file
     os.remove("static/video/"+vidName+".mp3")
     # delete the video file
